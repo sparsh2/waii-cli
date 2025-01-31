@@ -209,9 +209,14 @@ const getOrgDBInfo = async (dbToUserMap: Map<string, UserModel[]>, dbMap: Map<st
                 if((role === checkRole && user.id !== currentUserId) || (role === WaiiRoles.WAII_SUPER_ADMIN_USER && checkRole === WaiiRoles.WAII_ORG_ADMIN_USER)) {
                     skipUser = true;
                     otherAdmins += 1;
+                    break;
                 }
             }
+            if(user.roles.length === 0 || user.roles[0] === '') {
+                skipUser = true;
+            }
         }
+
         if(skipUser) {
             continue;
         }
@@ -267,6 +272,9 @@ const databaseListDoc = {
 const databaseList = async (params: CmdParams) => {
     let userInfo = await WAII.User.getInfo({});
     if('all_users' in  params.opts) {
+        if(userInfo.roles.length === 0) {
+            console.error('you do not have sufficient permissions; contact your admin')
+        }
         let currentUserRole = userInfo.roles[0];
         for(const role of userInfo.roles) {
             if(ROLE_RANKS[role] > ROLE_RANKS[currentUserRole]) {
@@ -395,6 +403,9 @@ async function confirmDelete(): Promise<boolean> {
 const databaseDelete = async (params: CmdParams) => {
     let userInfo = await WAII.User.getInfo({});
     if('all_users' in  params.opts) {
+        if(userInfo.roles.length === 0) {
+            console.error('you do not have sufficient permissions; contact your admin')
+        }
         let currentUserRole = userInfo.roles[0];
         for(const role of userInfo.roles) {
             if(ROLE_RANKS[role] > ROLE_RANKS[currentUserRole]) {
